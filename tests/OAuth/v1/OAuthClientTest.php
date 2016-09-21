@@ -23,25 +23,23 @@ class OAuthClientTest extends \PHPUnit_Framework_TestCase {
 
 	public function testGenerateSignature() {
 		$authorization = 'OAuth realm="http://example.test/testing",oauth_consumer_key="testKey",oauth_signature_method="HMAC-SHA1",oauth_timestamp="1463125730",oauth_nonce="B72xmh",oauth_version="1.0",oauth_signature="EN0%2FppVbr0qonk2cw%2BlP3EoNDcg%3D"';
-		$authorizationArray = OAuthRequest::parseOAuthString($authorization);
-		$request = new OAuthRequest('http://example.test/testing?mock=yes', $authorizationArray);
+		$authorizationArray = OAuthRequest::parseAuthorization($authorization);
+		$request = new OAuthRequest('http://example.test/testing?mock=yes', $authorization);
 		$signature = $this->oAuth->generateSignature($request);
-		$this->assertEquals($request->getAuthorizationParameter(OAuthClient::SIGNATURE), $signature);
+		$this->assertEquals($authorizationArray[OAuthClient::SIGNATURE], $signature);
 	}
 
 	public function testCreateAuthorizationHeader() {
 		$authorization = 'OAuth realm="http://example.test/testing",mock="yes",oauth_consumer_key="testKey",oauth_signature_method="HMAC-SHA1",oauth_timestamp="1463125730",oauth_nonce="B72xmh",oauth_version="1.0",oauth_signature="EN0%2FppVbr0qonk2cw%2BlP3EoNDcg%3D"';
-		$authorizationArray = OAuthRequest::parseOAuthString($authorization);
-		$request = new OAuthRequest('http://example.test/testing?mock=yes', $authorizationArray);
+		$request = new OAuthRequest('http://example.test/testing?mock=yes', $authorization);
 		$oAuthString = $this->oAuth->createAuthorizationHeader($request);
 
-		$this->assertArrayHasKey(OAuthClient::SIGNATURE, OAuthRequest::parseOAuthString($oAuthString));
+		$this->assertArrayHasKey(OAuthClient::SIGNATURE, OAuthRequest::parseAuthorization($oAuthString));
 	}
 
 	public function testCreateOAuthRequestUrl() {
 		$authorization = 'OAuth realm="http://example.test/testing",mock="yes",oauth_consumer_key="testKey",oauth_signature_method="HMAC-SHA1",oauth_timestamp="1463125730",oauth_nonce="B72xmh",oauth_version="1.0",oauth_signature="EN0%2FppVbr0qonk2cw%2BlP3EoNDcg%3D"';
-		$authorizationArray = OAuthRequest::parseOAuthString($authorization);
-		$request = new OAuthRequest('http://localhost/testXml/loadXml.php?type=subscription_cancel&accountIdentifier=APPDIRECT_devtech_1463394127_t33189', $authorizationArray);
+		$request = new OAuthRequest('http://localhost/testXml/loadXml.php?type=subscription_cancel&accountIdentifier=APPDIRECT_devtech_1463394127_t33189', $authorization);
 
 		$requestUrl = $this->oAuth->createOAuthRequestUrl($request);
 

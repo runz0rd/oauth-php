@@ -10,22 +10,41 @@ namespace OAuth\v1;
 
 class OAuthRequest {
 
+    /**
+     * @var string
+     */
     private $url;
+
+    /**
+     * @var string
+     */
     private $absolutePath;
+
+    /**
+     * @var array
+     */
     private $query;
-    private $authorization;
+
+    /**
+     * @var array
+     */
+    private $oAuthAuthorization;
+
+    /**
+     * @var string
+     */
     private $method;
 
     /**
      * @param string $url
-     * @param array $authorizationArray
+     * @param string $authorizationHeader
      * @param string $method
      */
-    public function __construct(string $url, array $authorizationArray = array(), string $method = 'GET') {
+    public function __construct(string $url, string $authorizationHeader = '', string $method = 'GET') {
         $this->url = $url;
         $this->absolutePath = $this->parseAbsolutePath($url);
         $this->query = $this->parseQuery($url);
-        $this->authorization = $authorizationArray;
+        $this->oAuthAuthorization = self::parseAuthorization($authorizationHeader);
         $this->method = $method;
     }
 
@@ -60,10 +79,9 @@ class OAuthRequest {
             $authorizationHeader = $serverGlobals['HTTP_AUTHORIZATION'];
         }
         $url = $scheme . '://' . $serverGlobals['SERVER_NAME'] . $port . $serverGlobals['REQUEST_URI'];
-        $authorizationArray = self::parseOAuthString($authorizationHeader);
         $method = $serverGlobals['REQUEST_METHOD'];
 
-        return new OAuthRequest($url, $authorizationArray, $method);
+        return new OAuthRequest($url, $authorizationHeader, $method);
     }
 
     /**
@@ -97,28 +115,44 @@ class OAuthRequest {
     }
 
     /**
-     * @param string $oAuthString
+     * @param string $authorization
      * @return array
+     * @throws OAuthException
      */
-    public static function parseOAuthString(string $oAuthString) {
+    public static function createOAuthArray(string $authorization) {
         $oAuthArray = array();
-        $oAuthString = str_replace("OAuth", "", $oAuthString);
-        $oAuthString = str_replace('"', '', $oAuthString);
-        $oAuthPieces = explode(",", $oAuthString);
+        $authorization = str_replace("OAuth", "", $authorization);
+        $authorization = str_replace('"', '', $authorization);
+        $oAuthPieces = explode(",", $authorization);
 
-        if(!empty($oAuthPieces)) {
-            foreach ($oAuthPieces as $oAuthParam) {
-                $oAuthParamPieces = explode("=", $oAuthParam);
-                if(!empty($oAuthParamPieces) && count($oAuthParamPieces) > 1) {
-                    if('realm' == trim($oAuthParamPieces[0])) {
-                        continue;
-                    }
-                    $oAuthArray[trim($oAuthParamPieces[0])] = rawurldecode(trim($oAuthParamPieces[1]));
+        if(empty($oAuthPieces)) {
+            throw new OAuthException('OAuth: Invalid authorization header provided');
+        }
+
+        foreach ($oAuthPieces as $oAuthParam) {
+            $oAuthParamPieces = explode("=", $oAuthParam);
+            if(!empty($oAuthParamPieces) && count($oAuthParamPieces) > 1) {
+                if('realm' == trim($oAuthParamPieces[0])) {
+                    continue;
                 }
+                $oAuthArray[trim($oAuthParamPieces[0])] = rawurldecode(trim($oAuthParamPieces[1]));
             }
         }
 
         return $oAuthArray;
+    }
+
+    /**
+     * @param array $oAuthArray
+     * @return string
+     */
+    public static function createOAuthString(array $oAuthArray) {
+        $authorizationHeader = 'OAuth ';
+        foreach($oAuthArray as $key => $value) {
+            $authorizationHeader .= $key . '="' . $value . '", ';
+        }
+
+        return rtrim($authorizationHeader, ', ');
     }
 
     /**
@@ -145,28 +179,15 @@ class OAuthRequest {
     }
 
     /**
-     * @param string $key
-     * @return string
-     * @throws OAuthException
-     */
-    public function getAuthorizationParameter(string $key) {
-        if(empty($key) || !isset($this->authorization[$key])) {
-            throw new OAuthException('OAuth: Parameter "' . $key . '" not found in the authorization header.');
-        }
-
-        return $this->authorization[$key];
-    }
-
-    /**
      * @return array
      * @throws OAuthException
      */
-    public function getAuthorization() {
-        if(!isset($this->authorization) || empty($this->authorization)) {
+    public function getOAuthArray() {
+        if(!isset($this->oAuthAuthorization) || empty($this->oAuthAuthorization)) {
             throw new OAuthException('OAuth: Authorization header not found in the request.');
         }
 
-        return $this->authorization;
+        return $this->oAuthAuthorization;
     }
 
     /**

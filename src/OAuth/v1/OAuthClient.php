@@ -56,7 +56,7 @@ class OAuthClient {
      */
     protected function generateBaseString(OAuthRequest $request) {
         $parameterString = "";
-        $parameters = array_merge($request->getAuthorization(), $request->getQuery());
+        $parameters = array_merge($request->getOAuthArray(), $request->getQuery());
         if(isset($parameters[self::SIGNATURE])) {
             unset($parameters[self::SIGNATURE]);
         }
@@ -96,12 +96,7 @@ class OAuthClient {
     public function createAuthorizationHeader(OAuthRequest $request) {
         $oAuthArray = $this->createOAuthArray($request);
 
-        $authorizationHeader = 'OAuth ';
-        foreach($oAuthArray as $key => $value) {
-            $authorizationHeader .= $key . '="' . $value . '", ';
-        }
-
-        return rtrim($authorizationHeader, ', ');
+        return OAuthRequest::createOAuthString($oAuthArray);
     }
 
     /**
