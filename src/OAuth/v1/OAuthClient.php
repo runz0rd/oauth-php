@@ -30,12 +30,12 @@ class OAuthClient {
      * OAuthClient constructor.
      * @param string $consumerKey
      * @param string $consumerSecret
-     * @param string $token
+     * @param string $tokenSecret
      */
-    public function __construct(string $consumerKey, string $consumerSecret, string $token = '') {
+    public function __construct(string $consumerKey, string $consumerSecret, string $tokenSecret = '') {
         $this->consumerKey = $consumerKey;
         $this->consumerSecret = $consumerSecret;
-        $this->token = $token;
+        $this->tokenSecret = $tokenSecret;
     }
 
     /**
@@ -44,10 +44,52 @@ class OAuthClient {
      */
     public function generateSignature(OAuthRequest $request) {
         $baseString = $this->generateBaseString($request);
-        $key = rawurlencode($this->consumerSecret) . "&" . rawurlencode($this->token);
+        $key = rawurlencode($this->consumerSecret) . "&" . rawurlencode($this->tokenSecret);
         $signature = base64_encode(hash_hmac(self::SHA1, $baseString, $key, true));
 
         return $signature;
+    }
+
+    /**
+     * @param OAuthRequest $request
+     * @return bool
+     * @throws OAuthException
+     */
+    public function verifySignature(OAuthRequest $request) {
+        $actualSignature = $request->getOAuthArray()[self::SIGNATURE];
+        $expectedSignature = $this->generateSignature($request);
+
+        $isVerified = false;
+        if($actualSignature == $expectedSignature) {
+            $isVerified = true;
+        }
+
+        return $isVerified;
+    }
+
+    /**
+     * @param OAuthRequest $request
+     * @return string
+     */
+    public function createAuthorizationHeader(OAuthRequest $request) {
+        $oAuthArray = $this->createOAuthArray($request);
+
+        return OAuthRequest::toHeader($oAuthArray);
+    }
+
+    /**
+     * @param OAuthRequest $request
+     * @return string
+     */
+    public function createOAuthRequestUrl(OAuthRequest $request) {
+        $parameterArray = array_merge($request->getQuery(), $this->createOAuthArray($request));
+
+        $oAuthRequestUrl = $request->getAbsolutePath() . '?';
+        foreach($parameterArray as $k => $v) {
+            $oAuthRequestUrl .= $k . '=' . $v . '&';
+        }
+
+        return rtrim($oAuthRequestUrl, '&');
     }
 
     /**
@@ -87,31 +129,6 @@ class OAuthClient {
         $oAuthArray[self::SIGNATURE] = rawurlencode($this->generateSignature($newRequest));
 
         return $oAuthArray;
-    }
-
-    /**
-     * @param OAuthRequest $request
-     * @return string
-     */
-    public function createAuthorizationHeader(OAuthRequest $request) {
-        $oAuthArray = $this->createOAuthArray($request);
-
-        return OAuthRequest::toHeader($oAuthArray);
-    }
-
-    /**
-     * @param OAuthRequest $request
-     * @return string
-     */
-    public function createOAuthRequestUrl(OAuthRequest $request) {
-        $parameterArray = array_merge($request->getQuery(), $this->createOAuthArray($request));
-
-        $oAuthRequestUrl = $request->getAbsolutePath() . '?';
-        foreach($parameterArray as $k => $v) {
-            $oAuthRequestUrl .= $k . '=' . $v . '&';
-        }
-
-        return rtrim($oAuthRequestUrl, '&');
     }
 
     /**
