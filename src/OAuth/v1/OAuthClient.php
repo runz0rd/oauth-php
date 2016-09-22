@@ -83,7 +83,7 @@ class OAuthClient {
         $oAuthArray[self::TIMESTAMP] = $this->getTimestamp();
         $oAuthArray[self::VERSION] = self::VERSION_NUMBER;
 
-        $newRequest = new OAuthRequest($request->getUrl(), $oAuthArray, $request->getMethod());
+        $newRequest = new OAuthRequest($request->getUrl(), OAuthRequest::toHeader($oAuthArray), $request->getMethod());
         $oAuthArray[self::SIGNATURE] = rawurlencode($this->generateSignature($newRequest));
 
         return $oAuthArray;
@@ -96,7 +96,7 @@ class OAuthClient {
     public function createAuthorizationHeader(OAuthRequest $request) {
         $oAuthArray = $this->createOAuthArray($request);
 
-        return OAuthRequest::createOAuthString($oAuthArray);
+        return OAuthRequest::toHeader($oAuthArray);
     }
 
     /**

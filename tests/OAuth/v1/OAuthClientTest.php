@@ -23,7 +23,7 @@ class OAuthClientTest extends \PHPUnit_Framework_TestCase {
 
 	public function testGenerateSignature() {
 		$authorization = 'OAuth realm="http://example.test/testing",oauth_consumer_key="testKey",oauth_signature_method="HMAC-SHA1",oauth_timestamp="1463125730",oauth_nonce="B72xmh",oauth_version="1.0",oauth_signature="EN0%2FppVbr0qonk2cw%2BlP3EoNDcg%3D"';
-		$authorizationArray = OAuthRequest::parseAuthorization($authorization);
+		$authorizationArray = OAuthRequest::toArray($authorization);
 		$request = new OAuthRequest('http://example.test/testing?mock=yes', $authorization);
 		$signature = $this->oAuth->generateSignature($request);
 		$this->assertEquals($authorizationArray[OAuthClient::SIGNATURE], $signature);
@@ -34,7 +34,7 @@ class OAuthClientTest extends \PHPUnit_Framework_TestCase {
 		$request = new OAuthRequest('http://example.test/testing?mock=yes', $authorization);
 		$oAuthString = $this->oAuth->createAuthorizationHeader($request);
 
-		$this->assertArrayHasKey(OAuthClient::SIGNATURE, OAuthRequest::parseAuthorization($oAuthString));
+		$this->assertArrayHasKey(OAuthClient::SIGNATURE, OAuthRequest::toArray($oAuthString));
 	}
 
 	public function testCreateOAuthRequestUrl() {

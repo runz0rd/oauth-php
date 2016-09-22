@@ -44,7 +44,7 @@ class OAuthRequest {
         $this->url = $url;
         $this->absolutePath = $this->parseAbsolutePath($url);
         $this->query = $this->parseQuery($url);
-        $this->oAuthAuthorization = self::parseAuthorization($authorizationHeader);
+        $this->oAuthAuthorization = self::toArray($authorizationHeader);
         $this->method = $method;
     }
 
@@ -119,7 +119,7 @@ class OAuthRequest {
      * @return array
      * @throws OAuthException
      */
-    public static function createOAuthArray(string $authorization) {
+    public static function toArray(string $authorization) {
         $oAuthArray = array();
         $authorization = str_replace("OAuth", "", $authorization);
         $authorization = str_replace('"', '', $authorization);
@@ -146,7 +146,7 @@ class OAuthRequest {
      * @param array $oAuthArray
      * @return string
      */
-    public static function createOAuthString(array $oAuthArray) {
+    public static function toHeader(array $oAuthArray) {
         $authorizationHeader = 'OAuth ';
         foreach($oAuthArray as $key => $value) {
             $authorizationHeader .= $key . '="' . $value . '", ';

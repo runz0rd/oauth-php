@@ -56,7 +56,7 @@ class OAuthRequestTest extends \PHPUnit_Framework_TestCase {
 
 	public function testOAuthStringToArray() {
 		$oAuthString = 'OAuth realm="http://example.test/testing",mock="yes",oauth_consumer_key="testKey",oauth_signature_method="HMAC-SHA1",oauth_timestamp="1463125730",oauth_nonce="B72xmh",oauth_version="1.0",oauth_signature="EN0%2FppVbr0qonk2cw%2BlP3EoNDcg%3D"';
-		$oAuthArray = OAuthRequest::parseAuthorization($oAuthString);
+		$oAuthArray = OAuthRequest::toArray($oAuthString);
 
 		$this->assertEquals(rawurldecode('EN0%2FppVbr0qonk2cw%2BlP3EoNDcg%3D'), $oAuthArray['oauth_signature']);
 	}
