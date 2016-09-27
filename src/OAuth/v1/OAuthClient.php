@@ -55,7 +55,7 @@ class OAuthClient {
      * @throws OAuthException
      */
     public function verifySignature(OAuthRequest $request) {
-        $actualSignature = $request->getOAuthArray()[self::SIGNATURE];
+        $actualSignature = $request->getOAuthParam(self::SIGNATURE);
         $expectedSignature = $this->generateSignature($request);
 
         if($actualSignature !== $expectedSignature) {
