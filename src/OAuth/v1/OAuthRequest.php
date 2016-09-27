@@ -191,6 +191,20 @@ class OAuthRequest {
     }
 
     /**
+     * @param string $name
+     * @return string
+     * @throws OAuthException
+     */
+    public function getOAuthParam(string $name) {
+        $oAuthArray = $this->getOAuthArray();
+        if(!isset($oAuthArray[$name])) {
+            throw new OAuthException('OAuth: Parameter ' . $name . ' not found in the authorization header.');
+        }
+
+        return $oAuthArray[$name];
+    }
+
+    /**
      * @return string
      * @throws OAuthException
      */
