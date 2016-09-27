@@ -24,7 +24,7 @@ class OAuthClient {
 
     private $consumerKey;
     private $consumerSecret;
-    private $token;
+    private $tokenSecret;
 
     /**
      * OAuthClient constructor.
@@ -52,19 +52,15 @@ class OAuthClient {
 
     /**
      * @param OAuthRequest $request
-     * @return bool
      * @throws OAuthException
      */
     public function verifySignature(OAuthRequest $request) {
         $actualSignature = $request->getOAuthArray()[self::SIGNATURE];
         $expectedSignature = $this->generateSignature($request);
 
-        $isVerified = false;
-        if($actualSignature == $expectedSignature) {
-            $isVerified = true;
+        if($actualSignature !== $expectedSignature) {
+            throw new OAuthException('OAuth: Signatures do not match.');
         }
-
-        return $isVerified;
     }
 
     /**
