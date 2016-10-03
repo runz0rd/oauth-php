@@ -107,7 +107,7 @@ class OAuthRequest {
         $query = array();
 
         $urlPieces = explode('?', $url);
-        if(!empty($urlPieces)) {
+        if(isset($urlPieces[1])) {
             parse_str($urlPieces[1], $query);
         }
 
