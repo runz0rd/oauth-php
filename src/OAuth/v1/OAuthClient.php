@@ -19,22 +19,26 @@ class OAuthClient {
     const TIMESTAMP = 'oauth_timestamp';
     const VERSION = 'oauth_version';
     const VERSION_NUMBER = '1.0';
+    const TOKEN = 'oauth_token';
     const NONCE_BEGIN = 123400;
     const NONCE_END = 9999999;
 
     private $consumerKey;
     private $consumerSecret;
+    private $token;
     private $tokenSecret;
 
     /**
      * OAuthClient constructor.
      * @param string $consumerKey
      * @param string $consumerSecret
+     * @param string $token
      * @param string $tokenSecret
      */
-    public function __construct(string $consumerKey, string $consumerSecret, string $tokenSecret = '') {
+    public function __construct(string $consumerKey, string $consumerSecret, string $token = '', string $tokenSecret = '') {
         $this->consumerKey = $consumerKey;
         $this->consumerSecret = $consumerSecret;
+        $this->token = $token;
         $this->tokenSecret = $tokenSecret;
     }
 
@@ -120,6 +124,9 @@ class OAuthClient {
         $oAuthArray[self::SIGNATURE_METHOD] = self::HMAC_SHA1;
         $oAuthArray[self::TIMESTAMP] = $this->getTimestamp();
         $oAuthArray[self::VERSION] = self::VERSION_NUMBER;
+        if(!empty($this->token)) {
+            $oAuthArray[self::TOKEN] = $this->token;
+        }
 
         $newRequest = new OAuthRequest($request->getUrl(), OAuthRequest::toHeader($oAuthArray), $request->getMethod());
         $oAuthArray[self::SIGNATURE] = rawurlencode($this->generateSignature($newRequest));
